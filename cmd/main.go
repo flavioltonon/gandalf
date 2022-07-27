@@ -13,15 +13,22 @@ import (
 	"github.com/flavioltonon/gandalf/application/services"
 	"github.com/flavioltonon/gandalf/infrastructure/logger/zap"
 	"github.com/flavioltonon/gandalf/infrastructure/presenter/json"
-	"github.com/flavioltonon/gandalf/infrastructure/repository/memory"
+	"github.com/flavioltonon/gandalf/infrastructure/repository/mongo"
 	"github.com/gorilla/mux"
 )
 
 func main() {
+	mongoClient, err := mongo.NewClient(context.Background(), "mongodb://database:27017")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	database := mongoClient.Database("gandalf")
+
 	var (
 		presenter                = json.NewPresenter()
 		logger, _                = zap.NewLogger()
-		usersRepository          = memory.NewUsersRepository()
+		usersRepository          = database.NewUsersRepository()
 		authenticationService    = services.NewAuthenticationService(usersRepository)
 		authenticationController = controllers.NewAuthenticationController(authenticationService, presenter, logger)
 	)

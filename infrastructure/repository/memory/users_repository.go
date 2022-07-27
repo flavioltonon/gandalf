@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"sync"
 
 	"github.com/flavioltonon/gandalf/domain"
@@ -16,8 +17,8 @@ func NewUsersRepository() *UsersRepository {
 	return new(UsersRepository)
 }
 
-func (r *UsersRepository) CreateUser(user *entity.User) error {
-	if _, err := r.GetUserByUsername(user.Username); err == nil {
+func (r *UsersRepository) CreateUser(ctx context.Context, user *entity.User) error {
+	if _, err := r.GetUserByUsername(ctx, user.Username); err == nil {
 		return domain.ErrAlreadyExists
 	}
 
@@ -25,7 +26,7 @@ func (r *UsersRepository) CreateUser(user *entity.User) error {
 	return nil
 }
 
-func (r *UsersRepository) GetUserByUsername(username valueobject.Username) (*entity.User, error) {
+func (r *UsersRepository) GetUserByUsername(ctx context.Context, username valueobject.Username) (*entity.User, error) {
 	var user *entity.User
 
 	r.users.Range(func(key, value interface{}) bool {
@@ -46,7 +47,7 @@ func (r *UsersRepository) GetUserByUsername(username valueobject.Username) (*ent
 	return user, nil
 }
 
-func (r *UsersRepository) GetUserByUsernameAndPassword(username valueobject.Username, password valueobject.Password) (*entity.User, error) {
+func (r *UsersRepository) GetUserByUsernameAndPassword(ctx context.Context, username valueobject.Username, password valueobject.Password) (*entity.User, error) {
 	var user *entity.User
 
 	r.users.Range(func(key, value interface{}) bool {

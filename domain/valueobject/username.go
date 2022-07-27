@@ -8,6 +8,8 @@ import (
 
 type Username string
 
+func (o Username) String() string { return string(o) }
+
 func (o Username) Validate() error {
 	rules := []ozzo.Rule{
 		ozzo.Length(8, 32),

@@ -1,7 +1,9 @@
 package services
 
 import (
+	"context"
 	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -21,7 +23,7 @@ func NewAuthenticationService(usersRepository repositories.UsersRepository) *Aut
 }
 
 // RegisterUser registers a new user
-func (s *AuthenticationService) RegisterUser(username, password string) (*entity.User, error) {
+func (s *AuthenticationService) RegisterUser(ctx context.Context, username, password string) (*entity.User, error) {
 	user := &entity.User{
 		ID:       valueobject.NewID(),
 		Username: valueobject.Username(username),
@@ -32,7 +34,7 @@ func (s *AuthenticationService) RegisterUser(username, password string) (*entity
 		return nil, fmt.Errorf("validate: %w", application.ValidationError(err))
 	}
 
-	if err := s.usersRepository.CreateUser(user); err != nil {
+	if err := s.usersRepository.CreateUser(ctx, user); err != nil {
 		if errors.Is(err, domain.ErrAlreadyExists) {
 			return nil, application.ErrUsernameAlreadyTaken
 		}
@@ -44,8 +46,9 @@ func (s *AuthenticationService) RegisterUser(username, password string) (*entity
 }
 
 // Login authenticates a user
-func (s *AuthenticationService) Login(username, password string) (*entity.User, error) {
+func (s *AuthenticationService) Login(ctx context.Context, username, password string) (*entity.User, error) {
 	user, err := s.usersRepository.GetUserByUsernameAndPassword(
+		ctx,
 		valueobject.Username(username),
 		valueobject.Password(s.encrypt(password)),
 	)
@@ -60,7 +63,6 @@ func (s *AuthenticationService) Login(username, password string) (*entity.User, 
 }
 
 func (s *AuthenticationService) encrypt(value string) string {
-	hash := md5.New()
-	hash.Write([]byte(value))
-	return string(hash.Sum(nil))
+	hash := md5.Sum([]byte(value))
+	return hex.EncodeToString(hash[:])
 }

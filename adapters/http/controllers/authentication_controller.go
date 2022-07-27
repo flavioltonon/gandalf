@@ -57,7 +57,7 @@ func (c *AuthenticationController) RegisterUser(rw http.ResponseWriter, r *http.
 		return
 	}
 
-	user, err := c.authenticationService.RegisterUser(dto.Username, dto.Password)
+	user, err := c.authenticationService.RegisterUser(r.Context(), dto.Username, dto.Password)
 	if err != nil {
 		switch {
 		case application.IsValidationError(err), errors.Is(err, application.ErrUsernameAlreadyTaken):
@@ -99,7 +99,7 @@ func (c *AuthenticationController) Login(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
-	user, err := c.authenticationService.Login(dto.Username, dto.Password)
+	user, err := c.authenticationService.Login(r.Context(), dto.Username, dto.Password)
 	if err != nil {
 		switch {
 		case application.IsValidationError(err):
