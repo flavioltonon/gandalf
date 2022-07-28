@@ -27,9 +27,9 @@ func newUser(e *entity.User) User {
 
 func (u *User) toEntity() *entity.User {
 	return &entity.User{
-		ID:       valueobject.ID(u.ID),
-		Username: valueobject.Username(u.Username),
-		Password: valueobject.Password(u.Password),
+		ID:       valueobject.NewID(u.ID),
+		Username: valueobject.NewUsername(u.Username),
+		Password: valueobject.NewPassword(u.Password),
 	}
 }
 
