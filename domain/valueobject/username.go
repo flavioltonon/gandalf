@@ -8,12 +8,14 @@ import (
 
 type Username string
 
+func NewUsername(value string) Username { return Username(value) }
+
 func (o Username) String() string { return string(o) }
 
 func (o Username) Validate() error {
 	rules := []ozzo.Rule{
 		ozzo.Length(8, 32),
-		ozzo.Match(regexp.MustCompile("(?i)[a-z0-9]")),
+		ozzo.Match(regexp.MustCompile("(?i)[a-z0-9 ]")),
 	}
 
 	for _, rule := range rules {

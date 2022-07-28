@@ -1,13 +1,10 @@
 package valueobject
 
-import (
-	"github.com/go-ozzo/ozzo-validation/v4/is"
-	"github.com/google/uuid"
-)
+import "github.com/go-ozzo/ozzo-validation/v4/is"
 
 type ID string
 
-func NewID() ID { return ID(uuid.NewString()) }
+func NewID(value string) ID { return ID(value) }
 
 func (o ID) String() string { return string(o) }
 
