@@ -1,10 +1,7 @@
 FROM golang:1.18.2-alpine3.14 as builder
 
-### Install Tesseract and its dependencies
-RUN apk update && apk add \
-    g++ \
-    make \
-    musl-dev
+### Install dependencies
+RUN apk update && apk add make
 
 ### Start build flow
 WORKDIR /app
@@ -16,7 +13,7 @@ RUN make build
 
 FROM alpine:3.14
 
-# Copy required 
+# Copy required data
 COPY --from=builder /app/bin /bin
 
 EXPOSE 8080
