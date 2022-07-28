@@ -11,9 +11,11 @@ import (
 
 	"github.com/flavioltonon/gandalf/adapters/http/controllers"
 	"github.com/flavioltonon/gandalf/application/services"
+	"github.com/flavioltonon/gandalf/infrastructure/cryptography"
 	"github.com/flavioltonon/gandalf/infrastructure/logger/zap"
 	"github.com/flavioltonon/gandalf/infrastructure/presenter/json"
 	"github.com/flavioltonon/gandalf/infrastructure/repository/mongo"
+	"github.com/flavioltonon/gandalf/infrastructure/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -26,10 +28,12 @@ func main() {
 	database := mongoClient.Database("gandalf")
 
 	var (
+		md5Encryptor             = cryptography.NewMD5Encryptor()
+		uuidV4Factory            = uuid.NewV4Factory()
 		presenter                = json.NewPresenter()
 		logger, _                = zap.NewLogger()
 		usersRepository          = database.NewUsersRepository()
-		authenticationService    = services.NewAuthenticationService(usersRepository)
+		authenticationService    = services.NewAuthenticationService(usersRepository, uuidV4Factory, md5Encryptor)
 		authenticationController = controllers.NewAuthenticationController(authenticationService, presenter, logger)
 	)
 

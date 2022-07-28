@@ -2,36 +2,37 @@ package services
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"errors"
 	"fmt"
 
 	"github.com/flavioltonon/gandalf/application"
 	"github.com/flavioltonon/gandalf/domain"
 	"github.com/flavioltonon/gandalf/domain/entity"
-	"github.com/flavioltonon/gandalf/domain/repositories"
+	"github.com/flavioltonon/gandalf/domain/interfaces"
 	"github.com/flavioltonon/gandalf/domain/valueobject"
 )
 
 type AuthenticationService struct {
-	usersRepository repositories.UsersRepository
+	usersRepository   interfaces.UsersRepository
+	uuidFactory       interfaces.UUIDFactory
+	passwordEncryptor interfaces.Encryptor
 }
 
-func NewAuthenticationService(usersRepository repositories.UsersRepository) *AuthenticationService {
-	return &AuthenticationService{usersRepository: usersRepository}
+func NewAuthenticationService(
+	usersRepository interfaces.UsersRepository,
+	uuidFactory interfaces.UUIDFactory,
+	passwordEncryptor interfaces.Encryptor) *AuthenticationService {
+	return &AuthenticationService{usersRepository: usersRepository, uuidFactory: uuidFactory, passwordEncryptor: passwordEncryptor}
 }
 
 // RegisterUser registers a new user
 func (s *AuthenticationService) RegisterUser(ctx context.Context, username, password string) (*entity.User, error) {
-	user := &entity.User{
-		ID:       valueobject.NewID(),
-		Username: valueobject.Username(username),
-		Password: valueobject.Password(s.encrypt(password)),
-	}
-
-	if err := user.Validate(); err != nil {
-		return nil, fmt.Errorf("validate: %w", application.ValidationError(err))
+	user, err := entity.NewUser(
+		valueobject.NewID(s.uuidFactory.NewUUID()),
+		valueobject.NewUsername(username),
+		valueobject.NewPassword(s.passwordEncryptor.Encrypt(password)))
+	if err != nil {
+		return nil, fmt.Errorf("new user: %w", application.ValidationError(err))
 	}
 
 	if err := s.usersRepository.CreateUser(ctx, user); err != nil {
@@ -49,9 +50,8 @@ func (s *AuthenticationService) RegisterUser(ctx context.Context, username, pass
 func (s *AuthenticationService) Login(ctx context.Context, username, password string) (*entity.User, error) {
 	user, err := s.usersRepository.GetUserByUsernameAndPassword(
 		ctx,
-		valueobject.Username(username),
-		valueobject.Password(s.encrypt(password)),
-	)
+		valueobject.NewUsername(username),
+		valueobject.NewPassword(s.passwordEncryptor.Encrypt(password)))
 	if errors.Is(err, domain.ErrNotFound) {
 		return nil, application.ErrInvalidCredentials
 	}
@@ -60,9 +60,4 @@ func (s *AuthenticationService) Login(ctx context.Context, username, password st
 	}
 
 	return user, nil
-}
-
-func (s *AuthenticationService) encrypt(value string) string {
-	hash := md5.Sum([]byte(value))
-	return hex.EncodeToString(hash[:])
 }
