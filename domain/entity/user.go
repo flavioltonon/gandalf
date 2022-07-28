@@ -11,6 +11,20 @@ type User struct {
 	Password valueobject.Password
 }
 
+func NewUser(id valueobject.ID, username valueobject.Username, password valueobject.Password) (*User, error) {
+	user := &User{
+		ID:       id,
+		Username: username,
+		Password: password,
+	}
+
+	if err := user.Validate(); err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (e *User) Validate() error {
 	return ozzo.ValidateStruct(e,
 		ozzo.Field(&e.ID, ozzo.Required),
