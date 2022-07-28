@@ -20,16 +20,12 @@ func NewClient(ctx context.Context, uri string) (*Client, error) {
 	return &Client{client: client}, nil
 }
 
-func (c *Client) Database(name string) *Database {
-	return &Database{database: c.client.Database(name)}
-}
-
 type Database struct {
 	database *mongo.Database
 }
 
-func NewDatabase() *Database {
-	return new(Database)
+func (c *Client) Database(name string) *Database {
+	return &Database{database: c.client.Database(name)}
 }
 
 type Collection struct {
@@ -38,10 +34,6 @@ type Collection struct {
 
 func (d *Database) Collection(name string) *Collection {
 	return &Collection{collection: d.database.Collection(name)}
-}
-
-type Session struct {
-	session mongo.Session
 }
 
 func (c *Collection) NewTransaction(ctx context.Context, txn func(sc mongo.SessionContext) (interface{}, error)) error {
